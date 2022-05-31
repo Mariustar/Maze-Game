@@ -1,4 +1,4 @@
-import Matter, { Engine, Render, Runner, World, Bodies, MouseConstraint, Mouse } from "matter-js";
+import Matter, { Engine, Render, Runner, World, Bodies } from "matter-js";
 import "./main.css";
 
 //! Create Engine
@@ -6,8 +6,9 @@ import "./main.css";
 const engine = Engine.create({ positionIterations: 20, velocityIterations: 20 });
 const world = engine.world;
 
-const width = 1000;
-const height = 800;
+const cells = 5;
+const width = 1500;
+const height = 900;
 
 const render = Render.create({
   element: document.getElementById("game-container"),
@@ -24,75 +25,63 @@ const render = Render.create({
 Render.run(render);
 Runner.run(Runner.create(), engine);
 
-World.add(
-  world,
-  MouseConstraint.create(engine, {
-    mouse: Mouse.create(render.canvas),
-  }),
-);
-
 //! Walls
 const walls = [
-  Bodies.rectangle(500, 0, 1000, 50, {
+  Bodies.rectangle(width / 2, 0, width, 50, {
     isStatic: true,
     render: {
       fillStyle: "black",
     },
   }),
-  Bodies.rectangle(1000, 400, 50, 800, {
+  Bodies.rectangle(width, height / 2, 50, height, {
     isStatic: true,
     render: {
       fillStyle: "black",
     },
   }),
-  Bodies.rectangle(500, 800, 1000, 50, {
+  Bodies.rectangle(width / 2, height, width, 50, {
     isStatic: true,
     render: {
       fillStyle: "black",
     },
   }),
-  Bodies.rectangle(0, 400, 50, 800, {
+  Bodies.rectangle(0, height / 2, 50, height, {
     isStatic: true,
     render: {
       fillStyle: "black",
     },
   }),
 ];
-
-for (let i = 0; i <= 95; i++) {
-  if (Math.random() < 0.3) {
-    World.add(
-      world,
-      Bodies.polygon(Math.random() * width, Math.random() * height, 30, 45, {
-        render: {
-          fillStyle: "#A52A2A",
-          lineWidth: 3,
-          strokeStyle: "black",
-        },
-      }),
-    );
-  } else if (Math.random() < 0.6) {
-    World.add(
-      world,
-      Bodies.rectangle(Math.random() * width, Math.random() * height, 70, 70, {
-        render: {
-          fillStyle: "#6495ED",
-          lineWidth: 3,
-          strokeStyle: "black",
-        },
-      }),
-    );
-  } else {
-    World.add(
-      world,
-      Bodies.polygon(Math.random() * width, Math.random() * height, 3, 50, {
-        render: {
-          fillStyle: "#2F4F4F",
-          lineWidth: 3,
-          strokeStyle: "black",
-        },
-      }),
-    );
-  }
-}
 World.add(world, walls);
+
+//! Maze generation
+
+const grid = Array(cells)
+  .fill(null)
+  .map(() => Array(cells).fill(false));
+
+const verticals = Array(cells)
+  .fill(null)
+  .map(() => Array(cells - 1).fill(false));
+
+const horizontals = Array(cells - 1)
+  .fill(null)
+  .map(() => Array(cells).fill(false));
+
+const startRow = Math.floor(Math.random() * cells);
+const startCol = Math.floor(Math.random() * cells);
+
+console.log(startRow, startCol);
+
+const stepThroughCell = (row, column) => {
+  // If i have visited the cell at [row. col], return
+  // Mark this cell as being visited
+  // Assemble randomly-ordered lsit of neighbors
+  // For each neighbor
+  // See if that neighbor is out of bounds
+  // If we have visited that neighbor, continue to next neighbor
+  // Remove a wall from either horizontal or vertical array
+  // Visit that next cell
+};
+
+stepThroughCell(startRow, startCol);
