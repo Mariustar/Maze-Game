@@ -1,4 +1,4 @@
-import Matter, { Engine, Render, Runner, World, Bodies } from "matter-js";
+import { Engine, Render, Runner, World, Bodies } from "matter-js";
 import "./main.css";
 
 //! Create Engine
@@ -6,9 +6,11 @@ import "./main.css";
 const engine = Engine.create({ positionIterations: 20, velocityIterations: 20 });
 const world = engine.world;
 
-const cells = 5;
-const width = 1500;
+const cells = 3;
+const width = 900;
 const height = 900;
+
+const unitLength = width / cells;
 
 const render = Render.create({
   element: document.getElementById("game-container"),
@@ -27,25 +29,25 @@ Runner.run(Runner.create(), engine);
 
 //! Walls
 const walls = [
-  Bodies.rectangle(width / 2, 0, width, 50, {
+  Bodies.rectangle(width / 2, 0, width, 20, {
     isStatic: true,
     render: {
       fillStyle: "black",
     },
   }),
-  Bodies.rectangle(width, height / 2, 50, height, {
+  Bodies.rectangle(width, height / 2, 20, height, {
     isStatic: true,
     render: {
       fillStyle: "black",
     },
   }),
-  Bodies.rectangle(width / 2, height, width, 50, {
+  Bodies.rectangle(width / 2, height, width, 20, {
     isStatic: true,
     render: {
       fillStyle: "black",
     },
   }),
-  Bodies.rectangle(0, height / 2, 50, height, {
+  Bodies.rectangle(0, height / 2, 20, height, {
     isStatic: true,
     render: {
       fillStyle: "black",
@@ -97,27 +99,94 @@ const stepThroughCell = (row, column) => {
   // Assemble randomly-ordered lsit of neighbors
 
   const neighbors = shuffle([
-    [startRow - 1, startCol],
-    [startRow, startCol + 1],
-    [startRow + 1, startCol],
-    [startRow, startCol - 1],
+    [row - 1, column, "up"],
+    [row, column + 1, "right"],
+    [row + 1, column, "down"],
+    [row, column - 1, "left"],
   ]);
-  console.log(neighbors);
-
-  // for (let i = 0; i < neighbors.length; i++) {
-  //   for (let j = 0; j < neighbors[i].length; j++) {
-  //     if (neighbors[i][j] > cells - 1 || neighbors[i][j] < 0) {
-  //       console.log(`Out of bounds at ${neighbors[i][j]}`);
-  //     }
-  //   }
-  // }
 
   // For each neighbor
-  // See if that neighbor is out of bounds
-  // If we have visited that neighbor, continue to next neighbor
-  // Remove a wall from either horizontal or vertical array
+  for (let neighbor of neighbors) {
+    const [nextRow, nextColumn, direction] = neighbor;
+    // See if that neighbor is out of bounds
+    if (nextRow < 0 || nextRow >= cells || nextColumn < 0 || nextColumn >= cells) {
+      continue;
+    }
+
+    // If we have visited that neighbor, continue to next neighbor
+    if (grid[nextRow][nextColumn]) {
+      continue;
+    }
+    // Remove a wall from either horizontal or vertical array
+
+    if (direction === "left") {
+      verticals[row][column - 1] = true;
+    } else if (direction === "right") {
+      verticals[row][column] = true;
+    } else if (direction === "up") {
+      horizontals[row - 1][column] = true;
+    } else if (direction === "down") {
+      horizontals[row][column] = true;
+    }
+
+    stepThroughCell(nextRow, nextColumn);
+  }
   // Visit that next cell
 };
 
 stepThroughCell(startRow, startCol);
-console.log(grid);
+
+horizontals.forEach((row, rowIndex) => {
+  row.forEach((open, columnIndex) => {
+    if (open) {
+      return;
+    }
+
+    const wall = Bodies.rectangle(
+      columnIndex * unitLength + unitLength / 2,
+      rowIndex * unitLength + unitLength,
+      unitLength + 9,
+      10,
+      {
+        isStatic: true,
+      },
+    );
+
+    World.add(world, wall);
+  });
+});
+
+verticals.forEach((row, rowIndex) => {
+  row.forEach((open, columnIndex) => {
+    if (open) {
+      return;
+    }
+
+    const wall = Bodies.rectangle(
+      columnIndex * unitLength + unitLength,
+      rowIndex * unitLength + unitLength / 2,
+      10,
+      unitLength + 9,
+      {
+        isStatic: true,
+      },
+    );
+
+    World.add(world, wall);
+  });
+});
+
+const goal = Bodies.rectangle(
+  width - unitLength / 2,
+  height - unitLength / 2,
+  unitLength * 0.7,
+  unitLength * 0.7,
+  {
+    isStatic: true,
+    render: {
+      fillStyle: "red",
+    },
+  },
+);
+
+World.add(world, goal);
