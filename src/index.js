@@ -1,4 +1,4 @@
-import { Engine, Render, Runner, World, Bodies, Body, Events } from "matter-js";
+import Matter, { Engine, Render, Runner, World, Bodies, Body, Events } from "matter-js";
 import "./main.css";
 
 //! Create Engine
@@ -6,6 +6,7 @@ import "./main.css";
 const engine = Engine.create({ positionIterations: 20, velocityIterations: 20 });
 engine.world.gravity.y = 0;
 // engine.gravity.x = 0;
+const composite = Matter.Composite;
 const world = engine.world;
 
 const cellsHorizontal = 15;
@@ -162,7 +163,8 @@ horizontals.forEach((row, rowIndex) => {
       },
     );
 
-    World.add(world, wall);
+    // World.add(world, wall);
+    composite.add(world, wall);
   });
 });
 
@@ -183,7 +185,8 @@ verticals.forEach((row, rowIndex) => {
       },
     );
 
-    World.add(world, wall);
+    // World.add(world, wall);
+    composite.add(world, wall);
   });
 });
 
@@ -200,7 +203,7 @@ const goal = Bodies.rectangle(
     },
   },
 );
-World.add(world, goal);
+composite.add(world, goal);
 
 const ballRadius = Math.min(unitLengthX, unitLengthY) / 4;
 const ball = Bodies.circle(unitLengthX / 2, unitLengthY / 2, ballRadius, {
@@ -211,23 +214,82 @@ const ball = Bodies.circle(unitLengthX / 2, unitLengthY / 2, ballRadius, {
   },
 });
 
-World.add(world, ball);
+composite.add(world, ball);
 
+// document.addEventListener("keydown", (event) => {
+//   const { x, y } = ball.velocity;
+//   if (event.key === "w") {
+//     Body.setVelocity(ball, { x, y: y - 5 });
+//   }
+//   if (event.key === "a") {
+//     Body.setVelocity(ball, { x: x - 5, y });
+//   }
+//   if (event.key === "s") {
+//     Body.setVelocity(ball, { x, y: y + 5 });
+//   }
+//   if (event.key === "d") {
+//     Body.setVelocity(ball, { x: x + 5, y });
+//   }
+// });
+
+const keyHandlers = {
+  KeyW: () => {
+    Body.applyForce(
+      ball,
+      {
+        x: ball.position.x,
+        y: ball.position.y,
+      },
+      { x: 0, y: -0.008 },
+    );
+  },
+  KeyA: () => {
+    Body.applyForce(
+      ball,
+      {
+        x: ball.position.x,
+        y: ball.position.y,
+      },
+      { x: -0.008, y: 0 },
+    );
+  },
+  KeyS: () => {
+    Body.applyForce(
+      ball,
+      {
+        x: ball.position.x,
+        y: ball.position.y,
+      },
+      { x: 0, y: 0.008 },
+    );
+  },
+  KeyD: () => {
+    Body.applyForce(
+      ball,
+      {
+        x: ball.position.x,
+        y: ball.position.y,
+      },
+      { x: 0.008, y: 0 },
+    );
+  },
+};
+
+const keysDown = new Set();
 document.addEventListener("keydown", (event) => {
-  const { x, y } = ball.velocity;
-  if (event.key === "w") {
-    Body.setVelocity(ball, { x, y: y - 5 });
-  }
-  if (event.key === "a") {
-    Body.setVelocity(ball, { x: x - 5, y });
-  }
-  if (event.key === "s") {
-    Body.setVelocity(ball, { x, y: y + 5 });
-  }
-  if (event.key === "d") {
-    Body.setVelocity(ball, { x: x + 5, y });
-  }
+  keysDown.add(event.code);
 });
+document.addEventListener("keyup", (event) => {
+  keysDown.delete(event.code);
+});
+
+Events.on(engine, "beforeUpdate", (event) => {
+  [...keysDown].forEach((k) => {
+    keyHandlers[k]?.();
+  });
+});
+
+composite.add(engine.world, walls);
 
 //! Win condition
 
