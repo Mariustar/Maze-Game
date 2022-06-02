@@ -1,11 +1,12 @@
 body {
   background-color: lightsteelblue;
+  margin: 0;
 }
 
-#game-container {
+/* #game-container {
   height: 98vh;
   display: flex;
   justify-content: center;
   vertical-align: middle;
   align-items: center;
-}
+} */
